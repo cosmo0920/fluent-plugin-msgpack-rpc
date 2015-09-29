@@ -20,6 +20,11 @@ module Fluent
 class MessagePackRPCInput < Input
   Plugin.register_input('msgpack_rpc', self)
 
+  # Define `router` method of v0.12 to support v0.10.57 or earlier
+  unless method_defined?(:router)
+    define_method("router") { Engine }
+  end
+
   def initialize
     require 'msgpack/rpc'
     super
