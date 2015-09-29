@@ -35,7 +35,7 @@ class MessagePackRPCInput < Input
 
   def start
     @server = MessagePack::RPC::Server.new
-    @server.listen @bind, @port, Server.new
+    @server.listen @bind, @port, Server.new(router)
     @thread = Thread.new {
       @server.run
     }
@@ -47,16 +47,20 @@ class MessagePackRPCInput < Input
   end
 
   class Server
+    def initialize(router)
+      @router = router
+    end
+
     def log(tag, time, record)
       time = Engine.now if time == 0
-      Engine.emit(tag, time, record)
+      @router.emit(tag, time, record)
       nil
     end
 
     def logs(tag, entries)
       current = Engine.now
       # TODO: need type validation for entries?
-      Engine.emit_array(tag, entries.map { |e|
+      @router.emit_array(tag, entries.map { |e|
         e[0] = current if e[0] == 0
         e
       })
